@@ -23,44 +23,58 @@ def ensure_datetime(d):
 
 # Initialize session state to store data
 if 'producers' not in st.session_state:
-    # Initialize with 5 producers by default
+    # Initialize with 7 producers by default
     current_date = datetime.now()
     
-    # Create 5 default producers
+    # Create 7 default producers
     st.session_state.producers = [
         Producer(
             id='P001',
             rating=5.0,  # Ensure this is a float
-            max_capacity=20,
+            max_capacity=9,
             last_delivery_date=current_date - timedelta(days=1),
             delivered_in_program=0
         ),
         Producer(
             id='P002',
             rating=4.5,  # Ensure this is a float
-            max_capacity=15,
+            max_capacity=8,
             last_delivery_date=current_date - timedelta(days=5),
             delivered_in_program=0
         ),
         Producer(
             id='P003',
             rating=4.0,  # Ensure this is a float
-            max_capacity=12,
+            max_capacity=7,
             last_delivery_date=current_date - timedelta(days=3),
             delivered_in_program=0
         ),
         Producer(
             id='P004',
-            rating=3.0,  # Ensure this is a float
-            max_capacity=25,
+            rating=3.5,  # Ensure this is a float
+            max_capacity=6,
             last_delivery_date=current_date - timedelta(days=30),
             delivered_in_program=0
         ),
         Producer(
             id='P005',
-            rating=2.0,  # Ensure this is a float
-            max_capacity=10,
+            rating=3.0,  # Ensure this is a float
+            max_capacity=5,
             last_delivery_date=None,  # New producer
+            delivered_in_program=0
+        ),
+        Producer(
+            id='P006',
+            rating=2.5,  # Ensure this is a float
+            max_capacity=4,
+            last_delivery_date=current_date - timedelta(days=15),
+            delivered_in_program=0
+        ),
+        Producer(
+            id='P007',
+            rating=2.0,  # Ensure this is a float
+            max_capacity=3,
+            last_delivery_date=current_date - timedelta(days=10),
             delivered_in_program=0
         )
     ]
@@ -74,7 +88,8 @@ if 'last_distribution_params' not in st.session_state:
         'rating_weight': 1.0,
         'rotation_weight': 0.15,
         'distribution_weight': 1.0,
-        'total_pallets': 20,
+        'total_pallets': 10,
+        'program_total_pallets': 20,
         'max_allocation_percentage': 0.4,
         'producer_hash': None
     }
@@ -99,36 +114,50 @@ def initialize_demo_data():
         Producer(
             id='P001',
             rating=5.0,  # Ensure this is a float
-            max_capacity=20,
+            max_capacity=9,
             last_delivery_date=current_date - timedelta(days=1),
             delivered_in_program=0
         ),
         Producer(
             id='P002',
             rating=4.5,  # Ensure this is a float
-            max_capacity=15,
+            max_capacity=8,
             last_delivery_date=current_date - timedelta(days=5),
             delivered_in_program=0
         ),
         Producer(
             id='P003',
             rating=4.0,  # Ensure this is a float
-            max_capacity=12,
+            max_capacity=7,
             last_delivery_date=current_date - timedelta(days=3),
             delivered_in_program=0
         ),
         Producer(
             id='P004',
-            rating=3.0,  # Ensure this is a float
-            max_capacity=25,
+            rating=3.5,  # Ensure this is a float
+            max_capacity=6,
             last_delivery_date=current_date - timedelta(days=30),
             delivered_in_program=0
         ),
         Producer(
             id='P005',
-            rating=2.0,  # Ensure this is a float
-            max_capacity=10,
+            rating=3.0,  # Ensure this is a float
+            max_capacity=5,
             last_delivery_date=None,  # New producer
+            delivered_in_program=0
+        ),
+        Producer(
+            id='P006',
+            rating=2.5,  # Ensure this is a float
+            max_capacity=4,
+            last_delivery_date=current_date - timedelta(days=15),
+            delivered_in_program=0
+        ),
+        Producer(
+            id='P007',
+            rating=2.0,  # Ensure this is a float
+            max_capacity=3,
+            last_delivery_date=current_date - timedelta(days=10),
             delivered_in_program=0
         )
     ]
@@ -156,7 +185,9 @@ with st.sidebar:
     
     # Allocation parameters
     st.subheader("Allocation Parameters")
-    total_pallets = st.number_input("Total Pallets to Distribute", min_value=1, value=20, step=1)
+    total_pallets = st.number_input("Total Pallets to Distribute", min_value=1, value=10, step=1)
+    program_total_pallets = st.number_input("Program Total Pallets", min_value=1, value=20, step=1, 
+                                            help="Estimated total pallets for the entire program (for coefficient calculation)")
     max_allocation_percentage = st.slider("Max Allocation per Producer (%)", 10, 100, 40, 5) / 100
     
     # Clear all data button
@@ -211,10 +242,11 @@ with tab1:
             ),
             "Max Capacity": st.column_config.NumberColumn(
                 "Max Capacity",
-                min_value=1,
+                min_value=2,
+                max_value=9,
                 step=1,
                 format="%d",
-                help="Maximum capacity for this producer"
+                help="Maximum capacity for this producer (2-9)"
             ),
             "Days Since Delivery": st.column_config.NumberColumn(
                 "Days Since Delivery",
@@ -281,6 +313,7 @@ with tab1:
             'rotation_weight': rotation_weight,
             'distribution_weight': distribution_weight,
             'total_pallets': total_pallets,
+            'program_total_pallets': program_total_pallets,
             'max_allocation_percentage': max_allocation_percentage,
             'producer_hash': calculate_producer_hash(st.session_state.producers)
         }
@@ -304,9 +337,8 @@ with tab1:
                 distribution_weight=distribution_weight
             )
             
-            # Estimate total program pallets
+            # Use the explicitly provided program_total_pallets instead of calculating it
             current_program_deliveries = sum(p.delivered_in_program for p in st.session_state.producers)
-            program_total_pallets = current_program_deliveries + total_pallets
             
             # Calculate initial coefficients
             initial_coefficients = {}
