@@ -31,49 +31,49 @@ if 'producers' not in st.session_state:
         Producer(
             id='P001',
             rating=5.0,  # Ensure this is a float
-            max_capacity=9,
+            max_capacity=15,
             last_delivery_date=current_date - timedelta(days=1),
             delivered_in_program=0
         ),
         Producer(
             id='P002',
             rating=4.5,  # Ensure this is a float
-            max_capacity=8,
+            max_capacity=15,
             last_delivery_date=current_date - timedelta(days=5),
             delivered_in_program=0
         ),
         Producer(
             id='P003',
             rating=4.0,  # Ensure this is a float
-            max_capacity=7,
+            max_capacity=15,
             last_delivery_date=current_date - timedelta(days=3),
             delivered_in_program=0
         ),
         Producer(
             id='P004',
             rating=3.5,  # Ensure this is a float
-            max_capacity=6,
+            max_capacity=15,
             last_delivery_date=current_date - timedelta(days=30),
             delivered_in_program=0
         ),
         Producer(
             id='P005',
             rating=3.0,  # Ensure this is a float
-            max_capacity=5,
+            max_capacity=15,
             last_delivery_date=None,  # New producer
             delivered_in_program=0
         ),
         Producer(
             id='P006',
             rating=2.5,  # Ensure this is a float
-            max_capacity=4,
+            max_capacity=15,
             last_delivery_date=current_date - timedelta(days=15),
             delivered_in_program=0
         ),
         Producer(
             id='P007',
             rating=2.0,  # Ensure this is a float
-            max_capacity=3,
+            max_capacity=15,
             last_delivery_date=current_date - timedelta(days=10),
             delivered_in_program=0
         )
@@ -114,49 +114,49 @@ def initialize_demo_data():
         Producer(
             id='P001',
             rating=5.0,  # Ensure this is a float
-            max_capacity=9,
+            max_capacity=15,
             last_delivery_date=current_date - timedelta(days=1),
             delivered_in_program=0
         ),
         Producer(
             id='P002',
             rating=4.5,  # Ensure this is a float
-            max_capacity=8,
+            max_capacity=15,
             last_delivery_date=current_date - timedelta(days=5),
             delivered_in_program=0
         ),
         Producer(
             id='P003',
             rating=4.0,  # Ensure this is a float
-            max_capacity=7,
+            max_capacity=15,
             last_delivery_date=current_date - timedelta(days=3),
             delivered_in_program=0
         ),
         Producer(
             id='P004',
             rating=3.5,  # Ensure this is a float
-            max_capacity=6,
+            max_capacity=15,
             last_delivery_date=current_date - timedelta(days=30),
             delivered_in_program=0
         ),
         Producer(
             id='P005',
             rating=3.0,  # Ensure this is a float
-            max_capacity=5,
+            max_capacity=15,
             last_delivery_date=None,  # New producer
             delivered_in_program=0
         ),
         Producer(
             id='P006',
             rating=2.5,  # Ensure this is a float
-            max_capacity=4,
+            max_capacity=15,
             last_delivery_date=current_date - timedelta(days=15),
             delivered_in_program=0
         ),
         Producer(
             id='P007',
             rating=2.0,  # Ensure this is a float
-            max_capacity=3,
+            max_capacity=15,
             last_delivery_date=current_date - timedelta(days=10),
             delivered_in_program=0
         )
@@ -180,12 +180,12 @@ with st.sidebar:
     # Distribution system parameters
     st.subheader("Distribution Parameters")
     rating_weight = st.slider("Rating Weight", 0.0, 2.0, 1.0, 0.1)
-    rotation_weight = st.slider("Rotation Weight (days since delivery)", 0.0, 1.0, 0.15, 0.05)
+    rotation_weight = st.slider("Rotation Weight (days since delivery)", 0.0, 1.0, 0.75, 0.05)
     distribution_weight = st.slider("Distribution Weight (already delivered)", 0.0, 2.0, 1.0, 0.1)
     
     # Allocation parameters
     st.subheader("Allocation Parameters")
-    total_pallets = st.number_input("Total Pallets to Distribute", min_value=1, value=10, step=1)
+    total_pallets = st.number_input("Total Pallets to Distribute", min_value=1, value=20, step=1)
     program_total_pallets = st.number_input("Program Total Pallets", min_value=1, value=20, step=1, 
                                             help="Estimated total pallets for the entire program (for coefficient calculation)")
     max_allocation_percentage = st.slider("Max Allocation per Producer (%)", 10, 100, 40, 5) / 100
@@ -242,11 +242,10 @@ with tab1:
             ),
             "Max Capacity": st.column_config.NumberColumn(
                 "Max Capacity",
-                min_value=2,
-                max_value=9,
+                min_value=1,
                 step=1,
                 format="%d",
-                help="Maximum capacity for this producer (2-9)"
+                help="Maximum capacity for this producer"
             ),
             "Days Since Delivery": st.column_config.NumberColumn(
                 "Days Since Delivery",
