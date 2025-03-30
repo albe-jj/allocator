@@ -71,7 +71,7 @@ class PalletDistributionSystem:
         
         # Calculate and normalize days since last delivery (capped at 30 days)
         if producer.last_delivery_date:
-            days_since_delivery = min(30, (current_date - producer.last_delivery_date).days)
+            days_since_delivery = (current_date - producer.last_delivery_date).days
         else:
             days_since_delivery = 30  # Max value for producers who haven't delivered
         
@@ -145,6 +145,9 @@ class PalletDistributionSystem:
             
             # Update the producer's delivered pallets and apply the delivery
             best_producer.delivered_in_program += 1
+
+            # Update the producer's last delivery date to the current date
+            best_producer.last_delivery_date = current_date
             
             # Remove producer if they've reached the maximum allocation or max capacity
             if (allocation[best_producer.id] >= max_pallets_per_producer or 
