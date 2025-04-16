@@ -9,7 +9,7 @@ import matplotlib.colors as mcolors
 
 # Set page configuration
 st.set_page_config(
-    page_title="Pallet Distribution Simulator",
+    page_title="Simulatore di Distribuzione Pallet",
     page_icon="📦",
     layout="wide"
 )
@@ -31,50 +31,51 @@ if 'producers' not in st.session_state:
         Producer(
             id='P001',
             rating=5.0,  # Ensure this is a float
-            max_capacity=15,
-            last_delivery_date=current_date - timedelta(days=1),
+            offered_pallets=3,
+            last_delivery_date=current_date - timedelta(days=6),
             delivered_in_program=0
         ),
         Producer(
             id='P002',
             rating=4.5,  # Ensure this is a float
-            max_capacity=15,
+            offered_pallets=3,
             last_delivery_date=current_date - timedelta(days=5),
             delivered_in_program=0
         ),
         Producer(
             id='P003',
             rating=4.0,  # Ensure this is a float
-            max_capacity=15,
-            last_delivery_date=current_date - timedelta(days=3),
+            offered_pallets=5,
+            last_delivery_date=current_date - timedelta(days=4),
             delivered_in_program=0
         ),
         Producer(
             id='P004',
             rating=3.5,  # Ensure this is a float
-            max_capacity=15,
-            last_delivery_date=current_date - timedelta(days=30),
+            offered_pallets=2,
+            last_delivery_date=current_date - timedelta(days=3),
             delivered_in_program=0
         ),
         Producer(
             id='P005',
             rating=3.0,  # Ensure this is a float
-            max_capacity=15,
-            last_delivery_date=None,  # New producer
+            offered_pallets=7,
+            # last_delivery_date=None,  # New producer
+            last_delivery_date=current_date - timedelta(days=7),
             delivered_in_program=0
         ),
         Producer(
             id='P006',
             rating=2.5,  # Ensure this is a float
-            max_capacity=15,
-            last_delivery_date=current_date - timedelta(days=15),
+            offered_pallets=5,
+            last_delivery_date=current_date - timedelta(days=10),
             delivered_in_program=0
         ),
         Producer(
             id='P007',
             rating=2.0,  # Ensure this is a float
-            max_capacity=15,
-            last_delivery_date=current_date - timedelta(days=10),
+            offered_pallets=3,
+            last_delivery_date=current_date - timedelta(days=11),
             delivered_in_program=0
         )
     ]
@@ -88,8 +89,9 @@ if 'last_distribution_params' not in st.session_state:
         'rating_weight': 1.0,
         'rotation_weight': 0.15,
         'distribution_weight': 1.0,
+        'current_delivery_weight': 0.5,
         'total_pallets': 10,
-        'program_total_pallets': 20,
+        'program_total_pallets': 10,
         'max_allocation_percentage': 0.4,
         'producer_hash': None
     }
@@ -98,7 +100,7 @@ if 'last_distribution_params' not in st.session_state:
 def calculate_producer_hash(producers):
     data_string = ""
     for p in producers:
-        data_string += f"{p.id}|{p.rating}|{p.max_capacity}|{p.delivered_in_program}|"
+        data_string += f"{p.id}|{p.rating}|{p.offered_pallets}|{p.delivered_in_program}|"
         if p.last_delivery_date:
             data_string += f"{p.last_delivery_date.timestamp()}|"
         else:
@@ -114,49 +116,49 @@ def initialize_demo_data():
         Producer(
             id='P001',
             rating=5.0,  # Ensure this is a float
-            max_capacity=15,
+            offered_pallets=15,
             last_delivery_date=current_date - timedelta(days=1),
             delivered_in_program=0
         ),
         Producer(
             id='P002',
             rating=4.5,  # Ensure this is a float
-            max_capacity=15,
+            offered_pallets=15,
             last_delivery_date=current_date - timedelta(days=5),
             delivered_in_program=0
         ),
         Producer(
             id='P003',
             rating=4.0,  # Ensure this is a float
-            max_capacity=15,
+            offered_pallets=15,
             last_delivery_date=current_date - timedelta(days=3),
             delivered_in_program=0
         ),
         Producer(
             id='P004',
             rating=3.5,  # Ensure this is a float
-            max_capacity=15,
+            offered_pallets=15,
             last_delivery_date=current_date - timedelta(days=30),
             delivered_in_program=0
         ),
         Producer(
             id='P005',
             rating=3.0,  # Ensure this is a float
-            max_capacity=15,
+            offered_pallets=15,
             last_delivery_date=None,  # New producer
             delivered_in_program=0
         ),
         Producer(
             id='P006',
             rating=2.5,  # Ensure this is a float
-            max_capacity=15,
+            offered_pallets=15,
             last_delivery_date=current_date - timedelta(days=15),
             delivered_in_program=0
         ),
         Producer(
             id='P007',
             rating=2.0,  # Ensure this is a float
-            max_capacity=15,
+            offered_pallets=15,
             last_delivery_date=current_date - timedelta(days=10),
             delivered_in_program=0
         )
@@ -166,40 +168,42 @@ def initialize_demo_data():
     st.session_state.current_date = current_date
 
 # Main app title
-st.title("🚚 Pallet Distribution Simulator")
-st.write("Simulate and visualize pallet distribution among producers based on merit coefficients.")
+st.title("🚚 Simulatore di Distribuzione Pallet")
+st.write("Simula e visualizza la distribuzione di pallet tra i produttori in base ai coefficienti di merito.")
 
 # Sidebar for configuration
 with st.sidebar:
-    st.header("Configuration")
+    st.header("Configurazione")
     
     # Load demo data button
-    if st.button("Reset to Default Data"):
+    if st.button("Ripristina Dati Predefiniti"):
         initialize_demo_data()
     
     # Distribution system parameters
-    st.subheader("Distribution Parameters")
-    rating_weight = st.slider("Rating Weight", 0.0, 2.0, 1.0, 0.1)
-    rotation_weight = st.slider("Rotation Weight (days since delivery)", 0.0, 1.0, 0.75, 0.05)
-    distribution_weight = st.slider("Distribution Weight (already delivered)", 0.0, 2.0, 1.0, 0.1)
+    st.subheader("Parametri di Distribuzione")
+    rating_weight = st.slider("Peso del Rating", 0.0, 2.0, 1.0, 0.1)
+    rotation_weight = st.slider("Peso della Rotazione (giorni dall'ultima consegna)", 0.0, 1.0, 0.75, 0.05)
+    distribution_weight = st.slider("Peso della Distribuzione (pallet già consegnati nel programma)", 0.0, 2.0, 1.0, 0.1)
+    current_delivery_weight = st.slider("Peso della Distribuzione Corrente", 0.0, 4.0, 2.0, 0.1, 
+                                      help="Riduce il coefficiente in base ai pallet già allocati nella distribuzione corrente, normalizzati rispetto alla capacità massima del produttore")
     
     # Allocation parameters
-    st.subheader("Allocation Parameters")
-    total_pallets = st.number_input("Total Pallets to Distribute", min_value=1, value=20, step=1)
-    program_total_pallets = st.number_input("Program Total Pallets", min_value=1, value=20, step=1, 
-                                            help="Estimated total pallets for the entire program (for coefficient calculation)")
-    max_allocation_percentage = st.slider("Max Allocation per Producer (%)", 10, 100, 40, 5) / 100
+    st.subheader("Parametri di Allocazione")
+    total_pallets = st.number_input("Totale Pallet da Distribuire", min_value=1, value=10, step=1)
+    program_total_pallets = st.number_input("Totale Pallet del Programma", min_value=1, value=10, step=1, 
+                                            help="Stima del totale dei pallet per l'intero programma (per il calcolo del coefficiente)")
+    max_allocation_percentage = st.slider("Allocazione Massima per Produttore (%)", 10, 100, 40, 5) / 100
     
     # Clear all data button
-    if st.button("Clear All Data"):
+    if st.button("Cancella Tutti i Dati"):
         st.session_state.producers = []
 
 # Main area
-tab1, tab2 = st.tabs(["Producer Distribution", "About"])
+tab1, tab2 = st.tabs(["Distribuzione Produttori", "Informazioni"])
 
 # Tab 1: Combined Producers Management and Distribution Results
 with tab1:
-    st.header("Producer Management")
+    st.header("Gestione Produttori")
     
     # Display current producers in a table
     if st.session_state.producers:
@@ -216,11 +220,11 @@ with tab1:
             
             producer_data.append({
                 "ID": p.id,
-                "Rating": p.rating,
-                "Max Capacity": p.max_capacity,
-                "Days Since Delivery": days_since_delivery,
-                "Delivered In Program": p.delivered_in_program,
-                "Remaining Capacity": p.remaining_capacity()
+                "Valutazione": p.rating,
+                "Pallet Offerti": p.offered_pallets,
+                "Giorni Dall'Ultima Consegna": days_since_delivery,
+                "Consegnati Nel Programma": p.delivered_in_program,
+                "Capacità Rimanente": p.remaining_capacity()
             })
         
         producer_df = pd.DataFrame(producer_data)
@@ -230,42 +234,42 @@ with tab1:
             "ID": st.column_config.TextColumn(
                 "ID",
                 disabled=True,  # ID should not be editable
-                help="Producer unique identifier"
+                help="Identificatore unico del produttore"
             ),
-            "Rating": st.column_config.NumberColumn(
-                "Rating",
+            "Valutazione": st.column_config.NumberColumn(
+                "Valutazione",
                 min_value=1.0,
                 max_value=5.0,
                 step=0.5,
                 format="%.1f",
-                help="Producer rating (1.0-5.0)"
+                help="Valutazione del produttore (1.0-5.0)"
             ),
-            "Max Capacity": st.column_config.NumberColumn(
-                "Max Capacity",
+            "Pallet Offerti": st.column_config.NumberColumn(
+                "Pallet Offerti",
                 min_value=1,
                 step=1,
                 format="%d",
-                help="Maximum capacity for this producer"
+                help="Numero di pallet offerti da questo produttore"
             ),
-            "Days Since Delivery": st.column_config.NumberColumn(
-                "Days Since Delivery",
+            "Giorni Dall'Ultima Consegna": st.column_config.NumberColumn(
+                "Giorni Dall'Ultima Consegna",
                 min_value=0,
                 step=1,
                 format="%d",
-                help="Days since last delivery (empty means never delivered)"
+                help="Giorni dall'ultima consegna (vuoto significa mai consegnato)"
             ),
-            "Delivered In Program": st.column_config.NumberColumn(
-                "Delivered In Program",
+            "Consegnati Nel Programma": st.column_config.NumberColumn(
+                "Consegnati Nel Programma",
                 min_value=0,
                 step=1,
                 format="%d",
-                help="Number of pallets already delivered in this program"
+                help="Numero di pallet già consegnati in questo programma"
             ),
-            "Remaining Capacity": st.column_config.NumberColumn(
-                "Remaining Capacity",
+            "Capacità Rimanente": st.column_config.NumberColumn(
+                "Capacità Rimanente",
                 disabled=True,  # This is a calculated field
                 format="%d",
-                help="Remaining capacity (Max Capacity - Delivered)"
+                help="Capacità rimanente (Pallet Offerti - Consegnati)"
             )
         }
         
@@ -285,13 +289,13 @@ with tab1:
                 producer = next((p for p in st.session_state.producers if p.id == row["ID"]), None)
                 if producer:
                     # Update the editable fields
-                    producer.rating = float(row["Rating"])
-                    producer.max_capacity = int(row["Max Capacity"])
-                    producer.delivered_in_program = int(row["Delivered In Program"])
+                    producer.rating = float(row["Valutazione"])
+                    producer.offered_pallets = int(row["Pallet Offerti"])
+                    producer.delivered_in_program = int(row["Consegnati Nel Programma"])
                     
                     # Handle the days since delivery field
-                    if pd.notna(row["Days Since Delivery"]):
-                        days = int(row["Days Since Delivery"])
+                    if pd.notna(row["Giorni Dall'Ultima Consegna"]):
+                        days = int(row["Giorni Dall'Ultima Consegna"])
                         # Calculate the date based on days since delivery
                         producer.last_delivery_date = current_date - timedelta(days=days)
                     else:
@@ -301,16 +305,18 @@ with tab1:
             if 'last_distribution_results' in st.session_state:
                 del st.session_state.last_distribution_results
             
-            st.success("Producer data updated!")
+            st.success("Dati del produttore aggiornati!")
+            st.rerun()  # Force Streamlit to rerun the app with updated data
         
         # Distribution Results Section
-        st.header("Distribution Results")
+        st.header("Risultati della Distribuzione")
         
         # Get the current parameters
         current_distribution_params = {
             'rating_weight': rating_weight,
             'rotation_weight': rotation_weight,
             'distribution_weight': distribution_weight,
+            'current_delivery_weight': current_delivery_weight,
             'total_pallets': total_pallets,
             'program_total_pallets': program_total_pallets,
             'max_allocation_percentage': max_allocation_percentage,
@@ -333,7 +339,8 @@ with tab1:
             distribution_system = PalletDistributionSystem(
                 rating_weight=rating_weight,
                 rotation_weight=rotation_weight,
-                distribution_weight=distribution_weight
+                distribution_weight=distribution_weight,
+                current_delivery_weight=current_delivery_weight
             )
             
             # Use the explicitly provided program_total_pallets instead of calculating it
@@ -354,7 +361,7 @@ with tab1:
                 sim_producer = Producer(
                     id=p.id,
                     rating=float(p.rating),  # Ensure this is a float
-                    max_capacity=p.max_capacity,
+                    offered_pallets=p.offered_pallets,
                     last_delivery_date=p.last_delivery_date,
                     delivered_in_program=p.delivered_in_program
                 )
@@ -378,13 +385,13 @@ with tab1:
                 
                 result_data.append({
                     "ID": p.id,
-                    "Rating": p.rating,
-                    "Initial Merit": round(initial_coef, 2),
-                    "Pallets Allocated": allocated,
-                    "Percentage": f"{percent:.1f}%",
-                    "Previous Delivery": p.delivered_in_program - allocated,
-                    "New Total": p.delivered_in_program,
-                    "Capacity Used": f"{p.delivered_in_program}/{p.max_capacity} ({p.delivered_in_program/p.max_capacity*100 if p.max_capacity else 0:.1f}%)"
+                    "Valutazione": p.rating,
+                    "Merito Iniziale": round(initial_coef, 2),
+                    "Pallet Allocati": allocated,
+                    "Percentuale": f"{percent:.1f}%",
+                    "Consegna Precedente": p.delivered_in_program - allocated,
+                    "Nuovo Totale": p.delivered_in_program,
+                    "Capacità Utilizzata": f"{p.delivered_in_program}/{p.offered_pallets} ({p.delivered_in_program/p.offered_pallets*100 if p.offered_pallets else 0:.1f}%)"
                 })
             
             # Store results in session state
@@ -404,19 +411,19 @@ with tab1:
             program_total_pallets = st.session_state.last_distribution_results['program_total_pallets']
         
         # Display results
-        st.subheader("Distribution Summary")
+        st.subheader("Riepilogo della Distribuzione")
         result_df = pd.DataFrame(result_data)
         st.dataframe(result_df, use_container_width=True, hide_index=True)
         
         # Create visualizations
-        st.subheader("Visualizations")
+        st.subheader("Visualizzazioni")
         
         # Helper function for custom percentage and count labels
         def make_autopct(values):
             def my_autopct(pct):
                 total = sum(values)
                 val = int(round(pct*total/100.0))
-                return f'{pct:.1f}%\n({val} pallets)'
+                return f'{pct:.1f}%\n({val} pallet)'
             return my_autopct
         
         # Generate a consistent colormap for producers
@@ -430,13 +437,13 @@ with tab1:
         
         with col1:
             # Pie chart of current allocation percentages
-            st.write("Current Allocation Distribution")
+            st.write("Distribuzione dell'Allocazione Corrente")
             fig, ax = plt.subplots(figsize=(10, 6))
             
             # Filter only producers who received allocations
-            producers_with_allocation = [p for p in result_data if p["Pallets Allocated"] > 0]
+            producers_with_allocation = [p for p in result_data if p["Pallet Allocati"] > 0]
             labels = [p["ID"] for p in producers_with_allocation]
-            sizes = [p["Pallets Allocated"] for p in producers_with_allocation]
+            sizes = [p["Pallet Allocati"] for p in producers_with_allocation]
             
             # Get the matching colors for these producers
             allocation_colors = [color_map[producer_id] for producer_id in labels]
@@ -459,19 +466,19 @@ with tab1:
                     autotext.set_fontweight('bold')
                 
                 ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle
-                plt.title("Current Distribution", fontsize=14)
+                plt.title("Distribuzione Corrente", fontsize=14)
                 
                 st.pyplot(fig)
             else:
-                st.info("No pallets were allocated.")
+                st.info("Nessun pallet è stato allocato.")
         
         with col2:
             # Pie chart of program total distribution
-            st.write("Total Program Distribution (including current allocation)")
+            st.write("Distribuzione Totale del Programma (inclusa l'allocazione corrente)")
             fig, ax = plt.subplots(figsize=(10, 6))
             
             # Get total program deliveries for each producer
-            program_totals = [p["New Total"] for p in result_data]
+            program_totals = [p["Nuovo Totale"] for p in result_data]
             total_program_pallets = sum(program_totals)
             
             # Only include producers with any program deliveries
@@ -480,9 +487,9 @@ with tab1:
             program_delivery_colors = []
             
             for i, p in enumerate(result_data):
-                if p["New Total"] > 0:
+                if p["Nuovo Totale"] > 0:
                     producers_with_program_deliveries.append(p["ID"])
-                    program_delivery_sizes.append(p["New Total"])
+                    program_delivery_sizes.append(p["Nuovo Totale"])
                     program_delivery_colors.append(color_map[p["ID"]])
             
             if sum(program_delivery_sizes) > 0:  # Ensure we have data to plot
@@ -503,14 +510,14 @@ with tab1:
                     autotext.set_fontweight('bold')
                 
                 ax.axis('equal')
-                plt.title(f"Program Total: {total_program_pallets} pallets", fontsize=14)
+                plt.title(f"Totale Programma: {total_program_pallets} pallet", fontsize=14)
                 
                 st.pyplot(fig)
             else:
-                st.info("No pallets have been delivered in the program.")
+                st.info("Nessun pallet è stato consegnato nel programma.")
         
         # Option to apply the distribution
-        if st.button("Apply This Distribution"):
+        if st.button("Applica Questa Distribuzione"):
             # Update the actual producers with the simulation results
             for p in st.session_state.producers:
                 sim_p = next((sp for sp in simulation_producers if sp.id == p.id), None)
@@ -521,45 +528,45 @@ with tab1:
             if 'last_distribution_results' in st.session_state:
                 del st.session_state.last_distribution_results
             
-            st.success("Distribution applied to producers!")
+            st.success("Distribuzione applicata ai produttori!")
             st.rerun()
     else:
-        st.info("No producers added yet. Click 'Reset to Default Data' in the sidebar.")
+        st.info("Nessun produttore aggiunto ancora. Clicca 'Ripristina Dati Predefiniti' nella barra laterale.")
 
 # Tab 2: About
 with tab2:
-    st.header("About this App")
+    st.header("Informazioni sull'App")
     st.write("""
-    This application simulates pallet distribution among producers based on a merit-based system.
+    Questa applicazione simula la distribuzione di pallet tra produttori basata su un sistema di merito.
     
-    ### How it works:
+    ### Come funziona:
     
-    1. **Producers**: Each producer has attributes like ID, rating, capacity, and delivery history.
+    1. **Produttori**: Ogni produttore ha attributi come ID, valutazione, capacità e cronologia delle consegne.
     
-    2. **Merit Coefficient**: The system calculates a merit coefficient for each producer based on:
-       - **Producer Rating**: Higher rated producers get priority
-       - **Days Since Last Delivery**: Producers who haven't delivered recently get higher priority (rotation)
-       - **Current Program Deliveries**: Producers who have already received many pallets get lower priority (fair distribution)
+    2. **Coefficiente di Merito**: Il sistema calcola un coefficiente di merito per ogni produttore basato su:
+       - **Valutazione del Produttore**: I produttori con valutazioni più alte hanno priorità
+       - **Giorni Dall'Ultima Consegna**: I produttori che non hanno effettuato consegne di recente hanno priorità più alta (rotazione)
+       - **Consegne Attuali del Programma**: I produttori che hanno già ricevuto molti pallet hanno priorità inferiore (distribuzione equa)
     
-    3. **Distribution Algorithm**:
-       - Calculates merit coefficients for all eligible producers
-       - Assigns one pallet to the producer with the highest coefficient
-       - Reduces that producer's coefficient by the decay factor
-       - Continues until all pallets are distributed or no eligible producers remain
+    3. **Algoritmo di Distribuzione**:
+       - Calcola i coefficienti di merito per tutti i produttori idonei
+       - Assegna un pallet al produttore con il coefficiente più alto
+       - Riduce il coefficiente di quel produttore mediante il fattore di decadimento
+       - Continua fino a quando tutti i pallet sono distribuiti o non rimangono produttori idonei
     
-    ### Parameters:
+    ### Parametri:
     
-    - **Rating Weight**: How much emphasis to place on producer rating
-    - **Rotation Weight**: How much emphasis to place on days since last delivery
-    - **Distribution Weight**: How much emphasis to place on existing deliveries (negative factor)
-    - **Max Allocation Percentage**: Maximum percentage of total pallets any single producer can receive
-    - **Decay Factor**: How quickly a producer's coefficient decreases after receiving a pallet
+    - **Peso della Valutazione**: Quanto enfatizzare la valutazione del produttore
+    - **Peso della Rotazione**: Quanto enfatizzare i giorni dall'ultima consegna
+    - **Peso della Distribuzione**: Quanto enfatizzare le consegne esistenti (fattore negativo)
+    - **Allocazione Massima per Produttore**: Percentuale massima del totale dei pallet che un singolo produttore può ricevere
+    - **Fattore di Decadimento**: Quanto rapidamente il coefficiente di un produttore diminuisce dopo aver ricevuto un pallet
     
-    ### Use Cases:
+    ### Casi d'Uso:
     
-    - Distributing orders fairly among qualified producers
-    - Ensuring rotation of producers while maintaining quality standards
-    - Balancing workload across your producer network
+    - Distribuzione equa degli ordini tra produttori qualificati
+    - Garanzia di rotazione dei produttori mantenendo gli standard di qualità
+    - Bilanciamento del carico di lavoro nella rete di produttori
     """)
 
 # Run the app with: streamlit run app.py 
